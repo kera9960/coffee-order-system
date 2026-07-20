@@ -49,11 +49,17 @@ public class GlobalExceptionHandler {
     }
 
     private ErrorCode toErrorCode(String field) {
-        return switch (field) {
+        String normalizedField = field.contains(".")
+                ? field.substring(field.lastIndexOf('.') + 1)
+                : field;
+        return switch (normalizedField) {
             case "name" -> ErrorCode.INVALID_MENU_NAME;
             case "price" -> ErrorCode.INVALID_MENU_PRICE;
             case "status" -> ErrorCode.INVALID_MENU_STATUS;
             case "amount" -> ErrorCode.INVALID_POINT_AMOUNT;
+            case "items" -> ErrorCode.EMPTY_ORDER_ITEMS;
+            case "quantity" -> ErrorCode.INVALID_ORDER_QUANTITY;
+            case "menuId" -> ErrorCode.MENU_NOT_FOUND;
             default -> null;
         };
     }

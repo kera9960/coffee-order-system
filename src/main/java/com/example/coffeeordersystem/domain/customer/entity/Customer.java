@@ -48,6 +48,16 @@ public class Customer {
         this.pointBalance += amount;
     }
 
+    public void usePoint(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Point use amount must be positive");
+        }
+        if (this.pointBalance < amount) {
+            throw new IllegalArgumentException("Point balance is insufficient");
+        }
+        this.pointBalance -= amount;
+    }
+
     @PrePersist
     void prePersist() {
         LocalDateTime now = LocalDateTime.now();

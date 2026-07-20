@@ -1,5 +1,7 @@
 package com.example.coffeeordersystem.domain.point.repository;
 
+import java.util.Optional;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,4 +14,6 @@ public interface PointTransactionRepository extends JpaRepository<PointTransacti
     Page<PointTransaction> findAllByCustomerId(Long customerId, Pageable pageable);
 
     Page<PointTransaction> findAllByCustomerIdAndType(Long customerId, PointTransactionType type, Pageable pageable);
+
+    Optional<PointTransaction> findByOrderId(Long orderId);
 }

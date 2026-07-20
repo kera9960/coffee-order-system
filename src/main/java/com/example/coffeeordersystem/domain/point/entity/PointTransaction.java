@@ -78,6 +78,12 @@ public class PointTransaction {
         return new PointTransaction(customer, null, PointTransactionType.CHARGE, amount, balanceAfter);
     }
 
+    public static PointTransaction createUse(Customer customer, Long orderId, Long usedAmount, Long balanceAfter) {
+        validateUseOrderId(orderId);
+        validateUseAmount(usedAmount);
+        return new PointTransaction(customer, orderId, PointTransactionType.USE, -usedAmount, balanceAfter);
+    }
+
     @PrePersist
     void prePersist() {
         LocalDateTime now = LocalDateTime.now();
@@ -94,6 +100,18 @@ public class PointTransaction {
     private static void validateChargeAmount(Long amount) {
         if (amount == null || amount <= 0) {
             throw new IllegalArgumentException("Charge amount must be positive");
+        }
+    }
+
+    private static void validateUseOrderId(Long orderId) {
+        if (orderId == null) {
+            throw new IllegalArgumentException("Use transaction order id must not be null");
+        }
+    }
+
+    private static void validateUseAmount(Long amount) {
+        if (amount == null || amount <= 0) {
+            throw new IllegalArgumentException("Use amount must be positive");
         }
     }
 

@@ -124,4 +124,52 @@ class PointServiceTest {
 
         verify(pointTransactionRepository).findAllByCustomerId(1L, pageable);
     }
+
+    @Test
+    void usePointForOrderParticipatesInExistingTransactionAndDoesNotLookupCustomer() throws Exception {
+        Method method = PointService.class.getMethod("usePointForOrder", Customer.class, Long.class);
+        Transactional transactional = method.getAnnotation(Transactional.class);
+        Customer customer = new Customer("홍길동", 12000L);
+
+        pointService.usePointForOrder(customer, 5000L);
+
+        verify(customerRepository, never()).findByIdForUpdate(any());
+        verify(customerRepository, never()).findById(any());
+        verify(pointTransactionRepository, never()).save(any());
+        assertEquals(org.springframework.transaction.annotation.Propagation.MANDATORY, transactional.propagation());
+        assertEquals(7000L, customer.getPointBalance());
+    }
+
+    @Test
+    void recordUseTransactionParticipatesInExistingTransactionAndStoresUseTransaction() throws Exception {
+        Method method = PointService.class.getMethod("recordUseTransaction", Customer.class, Long.class, Long.class);
+        Transactional transactional = method.getAnnotation(Transactional.class);
+        Customer customer = new Customer("홍길동", 7000L);
+        when(pointTransactionRepository.save(any(PointTransaction.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        pointService.recordUseTransaction(customer, 20L, 5000L);
+
+        ArgumentCaptor<PointTransaction> transactionCaptor = ArgumentCaptor.forClass(PointTransaction.class);
+        verify(customerRepository, never()).findByIdForUpdate(any());
+        verify(customerRepository, never()).findById(any());
+        verify(pointTransactionRepository).save(transactionCaptor.capture());
+        assertEquals(org.springframework.transaction.annotation.Propagation.MANDATORY, transactional.propagation());
+        assertEquals(PointTransactionType.USE, transactionCaptor.getValue().getType());
+        assertEquals(-5000L, transactionCaptor.getValue().getAmount());
+        assertEquals(20L, transactionCaptor.getValue().getOrderId());
+        assertEquals(7000L, transactionCaptor.getValue().getBalanceAfter());
+    }
+
+    @Test
+    void usePointForOrderFailsWithoutSavingWhenPointBalanceIsInsufficient() {
+        Customer customer = new Customer("홍길동", 4000L);
+
+        BusinessException exception = assertThrows(
+                BusinessException.class,
+                () -> pointService.usePointForOrder(customer, 5000L)
+        );
+
+        assertEquals(ErrorCode.INSUFFICIENT_POINTS, exception.getErrorCode());
+        verify(pointTransactionRepository, never()).save(any());
+    }
 }
