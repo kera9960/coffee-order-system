@@ -26,8 +26,10 @@ import com.example.coffeeordersystem.common.error.ErrorCode;
 import com.example.coffeeordersystem.domain.menu.dto.ChangeMenuStatusRequest;
 import com.example.coffeeordersystem.domain.menu.dto.CreateMenuRequest;
 import com.example.coffeeordersystem.domain.menu.dto.MenuResponse;
+import com.example.coffeeordersystem.domain.menu.dto.PopularMenuResponse;
 import com.example.coffeeordersystem.domain.menu.dto.UpdateMenuRequest;
 import com.example.coffeeordersystem.domain.menu.service.MenuService;
+import com.example.coffeeordersystem.domain.menu.service.PopularMenuService;
 
 import jakarta.validation.Valid;
 
@@ -42,9 +44,11 @@ public class MenuController {
     private static final List<String> ALLOWED_SORT_PROPERTIES = List.of("id", "name", "price", "status");
 
     private final MenuService menuService;
+    private final PopularMenuService popularMenuService;
 
-    public MenuController(MenuService menuService) {
+    public MenuController(MenuService menuService, PopularMenuService popularMenuService) {
         this.menuService = menuService;
+        this.popularMenuService = popularMenuService;
     }
 
     @PostMapping
@@ -70,6 +74,11 @@ public class MenuController {
                 menuPage.getTotalPages(),
                 normalizeSort(sort)
         );
+    }
+
+    @GetMapping("/popular")
+    public ApiResponse<List<PopularMenuResponse>> getPopularMenus() {
+        return ApiResponse.of(popularMenuService.getPopularMenus());
     }
 
     @GetMapping("/{menuId}")
