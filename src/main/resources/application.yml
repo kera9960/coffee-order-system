@@ -1,0 +1,6 @@
+spring:
+  application:
+    name: coffee-order-system
+
+  jpa:
+    open-in-view: false
