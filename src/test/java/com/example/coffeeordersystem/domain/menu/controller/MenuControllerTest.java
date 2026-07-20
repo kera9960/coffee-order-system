@@ -3,6 +3,8 @@ package com.example.coffeeordersystem.domain.menu.controller;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -27,8 +29,10 @@ import com.example.coffeeordersystem.common.error.BusinessException;
 import com.example.coffeeordersystem.common.error.ErrorCode;
 import com.example.coffeeordersystem.common.error.GlobalExceptionHandler;
 import com.example.coffeeordersystem.domain.menu.dto.MenuResponse;
+import com.example.coffeeordersystem.domain.menu.dto.PopularMenuResponse;
 import com.example.coffeeordersystem.domain.menu.entity.MenuStatus;
 import com.example.coffeeordersystem.domain.menu.service.MenuService;
+import com.example.coffeeordersystem.domain.menu.service.PopularMenuService;
 
 @WebMvcTest(MenuController.class)
 @Import(GlobalExceptionHandler.class)
@@ -39,6 +43,9 @@ class MenuControllerTest {
 
     @MockitoBean
     private MenuService menuService;
+
+    @MockitoBean
+    private PopularMenuService popularMenuService;
 
     @Test
     void createMenuReturnsCreatedAndDataWrapper() throws Exception {
@@ -83,6 +90,47 @@ class MenuControllerTest {
         mockMvc.perform(get("/api/menus/1"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.status").value("STOPPED"));
+    }
+
+    @Test
+    void getPopularMenusReturnsDataWrapper() throws Exception {
+        when(popularMenuService.getPopularMenus())
+                .thenReturn(List.of(
+                        new PopularMenuResponse(1L, "아메리카노", 3L),
+                        new PopularMenuResponse(2L, "카페라떼", 2L)
+                ));
+
+        mockMvc.perform(get("/api/menus/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(2)))
+                .andExpect(jsonPath("$.data[0].menuId").value(1))
+                .andExpect(jsonPath("$.data[0].menuName").value("아메리카노"))
+                .andExpect(jsonPath("$.data[0].orderCount").value(3))
+                .andExpect(jsonPath("$.data[1].menuId").value(2))
+                .andExpect(jsonPath("$.data[1].menuName").value("카페라떼"))
+                .andExpect(jsonPath("$.data[1].orderCount").value(2));
+    }
+
+    @Test
+    void getPopularMenusReturnsEmptyDataWrapper() throws Exception {
+        when(popularMenuService.getPopularMenus())
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/menus/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(0)));
+    }
+
+    @Test
+    void getPopularMenusDoesNotRequireQueryParametersAndDoesNotMatchMenuIdRoute() throws Exception {
+        when(popularMenuService.getPopularMenus())
+                .thenReturn(List.of());
+
+        mockMvc.perform(get("/api/menus/popular"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data", hasSize(0)));
+
+        verify(menuService, never()).getMenu(any());
     }
 
     @Test
