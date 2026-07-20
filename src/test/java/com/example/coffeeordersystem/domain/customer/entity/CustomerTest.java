@@ -25,6 +25,22 @@ class CustomerTest {
     }
 
     @Test
+    void usePointDecreasesPointBalance() {
+        Customer customer = new Customer("홍길동", 12000L);
+
+        customer.usePoint(5000L);
+
+        assertEquals(7000L, customer.getPointBalance());
+    }
+
+    @Test
+    void usePointFailsWhenPointBalanceIsInsufficient() {
+        Customer customer = new Customer("홍길동", 12000L);
+
+        assertThrows(IllegalArgumentException.class, () -> customer.usePoint(13000L));
+    }
+
+    @Test
     void zeroChargeAmountIsInvalid() {
         Customer customer = new Customer("홍길동", 12000L);
 
