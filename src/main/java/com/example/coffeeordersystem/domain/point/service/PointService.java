@@ -3,6 +3,7 @@ package com.example.coffeeordersystem.domain.point.service;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.coffeeordersystem.common.error.BusinessException;
@@ -47,6 +48,26 @@ public class PointService {
                 customer.getPointBalance()
         );
         return ChargePointResponse.from(pointTransactionRepository.save(pointTransaction));
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void usePointForOrder(Customer customer, Long totalAmount) {
+        try {
+            customer.usePoint(totalAmount);
+        } catch (IllegalArgumentException exception) {
+            throw new BusinessException(ErrorCode.INSUFFICIENT_POINTS);
+        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    public PointTransaction recordUseTransaction(Customer customer, Long orderId, Long totalAmount) {
+        PointTransaction pointTransaction = PointTransaction.createUse(
+                customer,
+                orderId,
+                totalAmount,
+                customer.getPointBalance()
+        );
+        return pointTransactionRepository.save(pointTransaction);
     }
 
     @Transactional(readOnly = true)

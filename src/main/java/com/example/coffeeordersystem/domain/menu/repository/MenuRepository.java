@@ -1,5 +1,8 @@
 package com.example.coffeeordersystem.domain.menu.repository;
 
+import java.util.Collection;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -14,4 +17,6 @@ public interface MenuRepository extends JpaRepository<Menu, Long> {
     boolean existsByNameAndIdNot(String name, Long id);
 
     Page<Menu> findAllByStatus(MenuStatus status, Pageable pageable);
+
+    List<Menu> findAllByIdIn(Collection<Long> ids);
 }
