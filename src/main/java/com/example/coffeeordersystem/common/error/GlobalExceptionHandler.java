@@ -30,7 +30,10 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException() {
+    public ResponseEntity<ErrorResponse> handleHttpMessageNotReadableException(HttpMessageNotReadableException exception) {
+        if (exception.getMessage() != null && exception.getMessage().contains("PointTransactionType")) {
+            return toResponse(ErrorCode.INVALID_POINT_TRANSACTION_TYPE);
+        }
         return toResponse(ErrorCode.INVALID_MENU_STATUS);
     }
 
@@ -50,6 +53,7 @@ public class GlobalExceptionHandler {
             case "name" -> ErrorCode.INVALID_MENU_NAME;
             case "price" -> ErrorCode.INVALID_MENU_PRICE;
             case "status" -> ErrorCode.INVALID_MENU_STATUS;
+            case "amount" -> ErrorCode.INVALID_POINT_AMOUNT;
             default -> null;
         };
     }
